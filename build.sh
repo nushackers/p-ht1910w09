@@ -315,7 +315,7 @@ finalize_offline() {
     cat <<EOF >> ${script_path}/${work_dir}/x86_64/airootfs/etc/pacman.conf
 [arch_offline]
 SigLevel = Optional TrustAll
-Server = file:///srv/http/arch_offline/os/x86_64/
+Server = file:///srv/http/arch_offline
 EOF
 }
 
