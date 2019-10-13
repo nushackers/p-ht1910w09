@@ -18,3 +18,4 @@ lightdm
 xorg-server
 networkmanager
 nm-connection-editor
+lightdm-gtk-greeter
