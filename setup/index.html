@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Hacker Tools: Linux OS internals</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/theme/black.min.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/lib/css/monokai.min.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/print/pdf.min.css' : 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/print/paper.min.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <style>
+      .reveal .slides img.logo-img {
+        background: white;
+        border: 10px solid #fff;
+        border-radius: 10px;
+      }
+
+      .reveal .slides .font175 {
+        font-size: 175%;
+      }
+
+      .reveal .slides .font150 {
+        font-size: 150%;
+      }
+
+      .reveal .slides .font120 {
+        font-size: 120%;
+      }
+
+      .reveal .slides .font75 {
+        font-size: 75%;
+      }
+
+      .reveal .slides .font70 {
+        font-size: 70%;
+      }
+
+      .reveal .slides .font45 {
+        font-size: 45%;
+      }
+
+      .reveal .slides .underline {
+        text-decoration: underline;
+      }
+
+      .reveal .slides .mt0 {
+        margin-top: 0;
+      }
+
+      .reveal .slides .mb0 {
+        margin-bottom: 0;
+      }
+
+      .reveal .slides .white-bg {
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section class="center">
+          <h1>Hacker Tools</h1>
+          <h2>Linux OS internals setup</h2>
+        </section>
+        <section>
+          <h2>What you need</h2>
+          <p><a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox 6</a></p>
+          <p><a href="https://github.com/nushackers/p-ht1910w09/releases/download/v0/archlinux-ht1910w09-2019.10.14-x86_64.iso">Our customised Arch Linux ISO</a></p>
+        </section>
+        <section>
+          <p>If you have run a VM in VirtualBox before, you should be fine.</p>
+          <p>If not, please attempt the following set-up process.</p>
+        </section>
+        <section><img src="img/vbox-1.png"></section>
+        <section><p>Select "Expert Mode".</p><img src="img/vbox-2.png"></section>
+        <section><img src="img/vbox-3.png"></section>
+        <section><img src="img/vbox-4.png"></section>
+        <section><img src="img/vbox-5.png"></section>
+        <section><img src="img/vbox-6.png"></section>
+        <section><img src="img/vbox-7.png"></section>
+        <section><img src="img/vbox-8.png"></section>
+        <section><img src="img/vbox-9.png"></section>
+        <section><img src="img/vbox-10.png"></section>
+        <section><img src="img/vbox-11.png"></section>
+        <section>
+          <p>Start the VM. You should reach the following screen after a while:</p>
+          <img src="img/vbox-s2.png" style="height: 15ex;">
+          <p>The VM may take a while at a screen showing "SHA256 validated".</p>
+        </section>
+        <section>
+          <p>Once there, you can just shutdown the VM for now by typing:</p>
+          <pre><code>shutdown -h now</code></pre>
+        </section>
+        <section>
+          <p>If you encounter an error starting the VM, please check that:</p>
+          <ul>
+            <li>Intel VT-x/AMD-V is enabled in your PC's firmware settings</li>
+            <li>(For Windows) Hyper-V is not installed</li>
+          </ul>
+          <p>If you are unsure how to do so, please ask during the workshop tomorrow.</p>
+        </section>
+        <section>
+          <p>If you have other issues, please ask during the workshop or email <a href="mailto:coreteam@nushackers.org">coreteam@nushackers.org</a>.</p>
+          <p>See you tomorrow!</p>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/js/reveal.min.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/plugin/notes/notes.js', async: true },
+          { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ],
+        slideNumber: true,
+        fragmentInURL: true,
+        transitionSpeed: 'fast',
+        // center: false,
+        hash: true,
+        navigationMode: 'linear',
+        transition: 'fade'
+      });
+    </script>
+  </body>
+</html>
