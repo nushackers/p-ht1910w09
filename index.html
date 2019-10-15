@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Hacker Tools: Linux OS internals</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/theme/black.min.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/monokai.min.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/print/pdf.min.css' : 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/css/print/paper.min.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <style>
+      .reveal .slides img.logo-img {
+        background: white;
+        border: 10px solid #fff;
+        border-radius: 10px;
+      }
+
+      .reveal .slides .font175 {
+        font-size: 175%;
+      }
+
+      .reveal .slides .font150 {
+        font-size: 150%;
+      }
+
+      .reveal .slides .font120 {
+        font-size: 120%;
+      }
+
+      .reveal .slides .font75 {
+        font-size: 75%;
+      }
+
+      .reveal .slides .font70 {
+        font-size: 70%;
+      }
+
+      .reveal .slides .font45 {
+        font-size: 45%;
+      }
+
+      .reveal .slides .underline {
+        text-decoration: underline;
+      }
+
+      .reveal .slides .mt0 {
+        margin-top: 0;
+      }
+
+      .reveal .slides .mb0 {
+        margin-bottom: 0;
+      }
+
+      .reveal .slides .white-bg {
+        background: white;
+      }
+
+      .reveal .slides pre > code > strong:not(.red) {
+        background-color: yellow;
+        color: black;
+      }
+
+      .reveal .slides pre > code > strong.red {
+        background-color: red;
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section class="center">
+          <h1>Hacker Tools</h1>
+          <h2>Linux OS internals</h2>
+        </section>
+        <section>
+          <h2>Today's agenda</h2>
+          <p>Learn about Linux by installing Arch Linux</p>
+        </section>
+        <section>
+          <p>Didn't we already install Ubuntu?</p>
+          <p>What's the difference between Arch and Ubuntu?</p>
+        </section>
+        <section>
+          <p>Ubuntu comes with everything pre-installed</p>
+          <p class="fragment">Arch comes with nothing and forces you to install the components you want</p>
+          <p class="fragment">In the process of choosing, you learn about what makes up a Linux system</p>
+        </section>
+        <section>
+          <h2>Let's get started!</h2>
+        </section>
+        <section>
+          <section><img src="img/vbox-1.png"></section>
+          <section><img src="img/vbox-2.png"></section>
+          <section><img src="img/vbox-3.png"></section>
+          <section><img src="img/vbox-4.png"></section>
+          <section><img src="img/vbox-5.png"></section>
+          <section><img src="img/vbox-6.png"></section>
+          <section><img src="img/vbox-7.png"></section>
+          <section><img src="img/vbox-8.png"></section>
+          <section><img src="img/vbox-9.png"></section>
+          <section><img src="img/vbox-10.png"></section>
+          <section><img src="img/vbox-11.png"></section>
+          <section><img src="img/vbox-s1.png" style="height: 20ex"></section>
+        </section>
+        <section>
+          <img src="img/vbox-s2.png" style="height: 20ex">
+          <p>Welcome to Arch!</p>
+        </section>
+        <section>
+          <pre><code class="language-console">root@archiso ~ # <strong>lsblk</strong>
+NAME  MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+loop0   7:0    0 735.4M  1 loop /run/archiso/sfs/airootfs
+sda     8:0    0     8G  0 disk
+sr0    11:0    1   842M  0 rom  /run/archiso/bootmnt</code></pre>
+          <p><code>sr0</code> is our ISO, mounted as a CD</p>
+          <p><code>loop0</code> is the squashfs root filesystem in the ISO</p>
+        </section>
+        <section><h2>Partition our drives</h2></section>
+        <section>
+          <pre><code class="language-console">root@archiso ~ # <strong>fdisk /dev/sda</strong>
+
+Welcome to fdisk (util-linux 2.34).
+Changes will remain in memory only, until you decide to
+write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0xe2bf1dea.
+
+Command (m for help): <strong>g</strong>
+Created a new GPT disklabel (GUID: ...).</code></pre>
+        </section>
+        <section><pre><code class="language-console">Command (m for help): <strong>n</strong>
+Partition number (1-128, default 1):
+First sector (2048-16777182, default 2048):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} ...: <strong>+128M</strong>
+
+Created a new partition 1 of type 'Linux filesystem'
+and of size 128 MiB.</code></pre></section>
+        <section><pre><code class="language-console">Command (m for help): <strong>n</strong>
+Partition number (2-128, default 2):
+First sector (264192-16777182, default 264192):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} ...:
+
+Created a new partition 2 of type 'Linux filesystem'
+and of size 7.9 GiB.</code></pre></section>
+        <section><pre><code class="language-console">Command (m for help): <strong>t</strong>
+Partition number (1,2, default 2): <strong>1</strong>
+Partition type (type L to list all types): <strong>1</strong>
+
+Changed type of partition 'Linux filesystem'
+to 'EFI System'.</code></pre></section>
+        <section><pre><code class="language-console">Command (m for help): <strong>p</strong>
+Disk /dev/sda: 8 GiB, 8589934592 bytes, 16777216 sectors
+Disk model: VBOX HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 9316ED0A-D968-AD45-AB7F-6CBAE449416A
+
+Device      Start      End  Sectors  Size Type
+/dev/sda1    2048   264191   262144  128M EFI System
+/dev/sda2  264192 16777182 16512991  7.9G Linux filesystem</code></pre></section>
+        <section><pre><code class="language-console">Command (m for help): <strong>w</strong>
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.</code></pre></section>
+        <section>
+          <section>
+            <h2>What is partitioning?</h2>
+            <p>Divides the disk up into&hellip; partitions</p>
+            <p>Common schemes:</p>
+            <ul>
+              <li>MBR: Master boot record (older)</li>
+              <li>GPT: GUID partition table (newer)</li>
+            </ul>
+          </section>
+          <section>
+            <img src="img/part-1.svg" style="width: 100%">
+          </section>
+          <section>
+            <img src="img/part-2.svg" style="width: 100%">
+          </section>
+        </section>
+        <section><h2>Format our partitions</h2></section>
+        <section><pre><code class="language-console">root@archiso ~ # <strong>mkfs.fat -F32 /dev/sda1</strong>
+mkfs.fat 4.1 (2017-01-24)
+root@archiso ~ # <strong>mkfs.ext4 /dev/sda2</strong>
+mke2fs 1.45.4 (23-Sep-2019)
+Creating filesystem with 2064123 4k blocks and 516096 inodes
+Filesystem UUID: a2e35681-e0d3-4309-bd6f-49c4547a92c0
+Superblock backups stored on blocks:
+        ...
+
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (16384 blocks): done
+Writing superblocks and
+  filesystem accounting information: done
+</code></pre></section>
+        <section>
+          <h2>What is formatting?</h2>
+          <p>A partition itself is still just a bunch of bytes</p>
+          <p>Formatting: initialise a file system on the partition/disk</p>
+          <h2>What is a file system?</h2>
+          <p>A way to represent our files on disk</p>
+          <p>Including all the metadata: names, creation/modification/access times, permissions, etc</p>
+          <p>ext2/3/4, NTFS, FAT32, exFAT, HFS+, APFS, ...</p>
+        </section>
+        <section><h2>Mount our partitions</h2></section>
+        <section><pre><code class="language-console">root@archiso ~ # <strong>mount /dev/sda2 /mnt</strong>
+root@archiso ~ # <strong>cd /mnt</strong>
+root@archiso /mnt # <strong>ls</strong>
+lost+found
+root@archiso /mnt # <strong>mkdir -p boot/efi</strong>
+root@archiso /mnt # <strong>mount /dev/sda1 boot/efi</strong></code></pre></section>
+        <section>
+          <h2>What is mounting?</h2>
+          <p>Tell the system where this file system<br>should appear in the hierarchy</p>
+          <p>Windows: assign a drive letter</p>
+          <p>Unix: assign a mount point</p>
+        </section>
+        <section><h2>Bootstrap our system</h2></section>
+        <section><pre><code class="language-console">root@archiso ~ # <strong>pacman -Sy</strong>
+:: Synchronizing package databases...
+ arch_offline              80.9 KiB  26.3M/s 00:00 ... 100%
+root@archiso /mnt # <strong>pacstrap /mnt base linux grub</strong>
+==> Creating install root at /mnt
+==> Installing packages to /mnt
+:: Synchronizing package databases...
+ arch_offline              80.9 KiB  0.00B/s 00:00 ... 100%
+resolving dependencies...
+looking for conflicting packages...
+
+Packages (115) ...
+
+Total Download Size:   190.56 MiB
+Total Installed Size:  612.04 MiB
+
+:: Proceed with installation? [Y/n]
+:: Retrieving packages...
+&lt;snip&gt;
+(115/115) checking keys in keyring
+(115/115) checking package integrity
+(115/115) loading package files
+(115/115) checking for file conflicts
+(115/115) checking available disk space
+:: Processing package changes...
+&lt;snip&gt;
+:: Running post-transaction hooks...
+pacstrap /mnt base linux grub
+  30.39s user 6.30s system 95% cpu 38.240 total
+</code></pre></section>
+        <section>
+          <h2>What was that?</h2>
+          <ul>
+            <li>base: A meta-package containing some <a href="https://www.archlinux.org/packages/core/any/base/" target="_blank" rel="noopener noreferrer">basic packages</a></li>
+            <li>linux: The Linux kernel</li>
+            <li>grub: The bootloader we'll use</li>
+          </ul>
+        </section>
+        <section>
+          <h2>How did that work?</h2>
+          <p>A Linux installation is just a set of (many) files</p>
+          <p>We use a package manager to manage the files</p>
+          <p>pacstrap is pacman's script to<br>set up the package manager's database<br> and install base files (including itself)</p>
+          <p>Others exist: debootstrap on Debian-based,<br>yum (directly) on RPM-based</p>
+        </section>
+        <section>
+          <h2>What is <a href="https://en.wikipedia.org/wiki/Systemd" target="_blank" rel="noopener noreferrer">systemd</a>?</h2>
+          <p>System service manager, plus many other things</p>
+          <p>Is <code>init</code>: the first process run by the kernel</p>
+          <p>Brings up services set to launch on boot e.g.</p>
+          <ul>
+            <li>Network manager daemon</li>
+            <li>System logging daemon</li>
+            <li>TTY manager</li>
+            <li>Display manager</li>
+          </ul>
+        </section>
+        <section>
+          <h2>systemd <a href="https://wiki.archlinux.org/index.php/Init" target="_blank" rel="noopener noreferrer">alternatives</a></h2>
+          <p>sysvinit: the traditional init</p>
+          <p>runit: a revamped sysvinit</p>
+          <p>OpenRC: somewhat like systemd but with less integrated features</p>
+        </section>
+        <section><img src="img/boot-3.svg"></section>
+        <section>
+          <section>
+            <h2>What is <code>initcpio</code>?</h2>
+            <pre><code class="language-console">==> Building image from preset: /etc/mkinitcpio.d/linux.preset: 'default'
+  -> -k /boot/vmlinuz-linux -c /etc/mkinitcpio.conf -g /boot/initramfs-linux.img
+==> Starting build: 5.3.5-arch1-1-ARCH
+  -> Running build hook: [base]
+  -> Running build hook: [udev]
+  -> Running build hook: [autodetect]
+  -> Running build hook: [modconf]
+  -> Running build hook: [block]
+  -> Running build hook: [filesystems]
+  -> Running build hook: [keyboard]
+  -> Running build hook: [fsck]
+==> Generating module dependencies
+==> Creating gzip-compressed initcpio image: /boot/initramfs-linux.img</code></pre>
+          </section>
+          <section>
+            <h2>What is <code>initcpio</code>?</h2>
+            <p>Once the kernel is done initialising, it launches <code>init</code></p>
+            <p>But it needs to know where <code>init</code> is!</p>
+            <p>Either we tell it where the root filesystem is,<br>or we use a <code>initcpio</code> or <code>initramfs</code></p>
+            <p><code>initramfs</code> means initial RAM filesystem, which is quite self-descriptive</p>
+          </section>
+          <section>
+            <h2>Why <code>initcpio</code>?</h2>
+            <p>Why not just let the kernel load the rootfs directly?</p>
+            <p>Modern systems can be quite complex:</p>
+            <ul>
+              <li>full-disk encryption or other complex configurations of root filesystem</li>
+              <li>extra drivers to load, etc.</li>
+            </ul>
+            <p>Instead of having all the logic to handle this in the kernel, just load an <code>initramfs</code> that deals with it in user space.</p>
+          </section>
+        </section>
+        <section><h2>Create the <code>fstab</code></h2><pre><code class="language-console">root@archiso /mnt # <strong>genfstab -U /mnt &gt;&gt; etc/fstab</strong>
+root@archiso /mnt # <strong>cat etc/fstab</strong>
+# Static information about the filesystems.
+# See fstab(5) for details.
+
+# &lt;file system&gt; &lt;dir&gt; &lt;type&gt; &lt;options&gt; &lt;dump&gt; &lt;pass&gt;
+# /dev/sda2
+UUID=a2e35681-e0d3-4309-bd6f-49c4547a92c0 / ext4 rw,relatime 0 1
+
+# /dev/sda1
+UUID=7306-5CE5 /boot/efi vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro 0 2
+</code></pre></section>
+        <section>
+          <h2>What's the <code>fstab</code> for?</h2>
+          <p>fstab = <strong>f</strong>ile<strong>s</strong>ystem <strong>tab</strong>le</p>
+          <p>Usually, only the rootfs is mounted first</p>
+          <p>The <code>fstab</code> tells the bootup scripts (in our case, systemd) what filesystems to mount, and where</p>
+        </section>
+        <section><h2>Copy offline repository</h2><pre><code class="language-console">root@archiso /mnt # <strong>cp -R /srv/http/arch_offline /mnt/srv/http/</strong>
+root@archiso /mnt # <strong>ls srv/http/</strong>
+arch_offline</code></pre></section>
+        <section>
+        <section>
+            <h2>Set up offline repository</h2>
+            <pre><code class="language-console">root@archiso /mnt # <strong>nano etc/pacman.conf</strong></code></pre>
+            <p>Comment out Arch repositories</p>
+            <pre><code class="language-console">[core]
+<strong>#</strong>Include = /etc/pacman.d/mirrorlist
+
+[extra]
+<strong>#</strong>Include = /etc/pacman.d/mirrorlist
+
+[community]
+<strong>#</strong>Include = /etc/pacman.d/mirrorlist</code></pre>
+          </section>
+          <section>
+            <p>Add in offline repository</p>
+            <pre><code class="language-console">[arch_offline]
+SigLevel = Optional TrustAll
+Server = file:///srv/http/arch_offline</code></pre>
+          </section>
+          <section>
+            <h2>Note</h2>
+            <p>This offline repository isn't part of the usual Arch installation</p>
+            <p>It was added so we don't have to depend on the internet for this workshop</p>
+          </section>
+        </section>
+        <section><h2><code>chroot</code> into the new system</h2><pre><code class="language-console">root@archiso /mnt # <strong>arch-chroot .</strong>
+[root@archiso /]#</code></pre></section>
+        <section>
+          <h2>What is <code>chroot</code>?</h2>
+          <p>chroot = change root</p>
+          <p>Remember, Unix systems have a single root directory</p>
+          <p>Also remember that a Linux (actually most Unices) system is just a set of files organised with some conventions</p>
+          <p>By changing root, we "switch into" a different system</p>
+        </section>
+        <section><pre><code class="language-console">[root@archiso /]# <strong>mount</strong>
+/dev/sda2 on / type ext4 (rw,relatime)
+/dev/sda1 on /boot/efi type vfat (rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro)
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+sys on /sys type sysfs (ro,nosuid,nodev,noexec,relatime)
+efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
+udev on /dev type devtmpfs (rw,nosuid,relatime,size=998392k,nr_inodes=249598,mode=755)
+devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)
+shm on /dev/shm type tmpfs (rw,nosuid,nodev,relatime)
+run on /run type tmpfs (rw,nosuid,nodev,relatime,mode=755)
+tmp on /tmp type tmpfs (rw,nosuid,nodev)
+airootfs on /etc/resolv.conf type overlay (rw,relatime,lowerdir=/run/archiso/sfs/airootfs,upperdir=/run/archiso/cowspace/persistent_ARCH_201910/x86_64/upperdir,workdir=/run/archiso/cowspace/persistent_ARCH_201910/x86_64/workdir)</code></pre></section>
+        <section><h2>Configure new system</h2></section>
+        <section><pre><code class="language-console">[root@archiso /]# <strong>pacman -Sy</strong>
+:: Synchronizing package databases...
+ arch_offline              80.9 KiB  0.00B/s 00:00 ... 100%</code></pre></section>
+        <section><p>Install a usable editor</p><pre><code class="language-console">[root@archiso /]# <strong>pacman -S nano</strong>
+resolving dependencies...
+looking for conflicting packages...
+
+Packages (1) nano-4.5-1
+
+Total Download Size:   0.47 MiB
+Total Installed Size:  2.48 MiB
+
+:: Proceed with installation? [Y/n]
+:: Retrieving packages...
+ nano-4.5-1-x86_64        483.6 KiB   157M/s 00:00 ... 100%
+(1/1) checking keys in keyring                     ... 100%
+(1/1) checking package integrity                   ... 100%
+(1/1) loading package files                        ... 100%
+(1/1) checking for file conflicts                  ... 100%
+(1/1) checking available disk space                ... 100%
+:: Processing package changes...
+(1/1) installing nano                              ... 100%
+:: Running post-transaction hooks...
+(1/1) Arming ConditionNeedsUpdate...</code></pre><p><code>vim</code> is unusable /s</p></section>
+        <section>
+          <p>Set hostname</p><pre><code class="language-console">[root@archiso /]# <strong>echo 'myvm' &gt; /etc/hostname</strong></code></pre>
+          <p>Set timezone</p><pre><code class="language-console">[root@archiso /]# <strong>ln -sf /usr/share/zoneinfo/Asia/Singapore \
+  &gt; /etc/localtime</strong></code></pre>
+          <p>Select locales to generate</p><pre><code class="language-console">[root@archiso /]# <strong>nano /etc/locale.gen</strong>
+<strong class="red"><del>#</del></strong>en_SG.UTF-8 UTF-8</code></pre>
+        </section>
+        <section>
+          <p>Configure locale</p><pre><code class="language-console">[root@archiso /]# <strong>echo 'LANG=en_SG.UTF-8' &gt; /etc/locale.conf</strong></code></pre>
+          <p>Generate locales</p><pre><code class="language-console">[root@archiso /]# <strong>locale-gen</strong>
+Generating locales...
+  en_SG.UTF-8... done
+Generation complete.</code></pre>
+        </section>
+        <section>
+          <h2>What's a hostname?</h2>
+          <p>A property set in the kernel, like the PC name on Windows</p>
+          <p>systemd sets it in the kernel, from /etc/hostname</p>
+        </section>
+        <section>
+          <h2>What about the timezone file?</h2>
+          <p>That is read by <code>glibc</code>, the library that almost all programs
+          use for basic functions, including the time.</p>
+          <p>Note: distinct from kernel's timezone, which glibc doesn't use</p>
+        </section>
+        <section>
+          <h2>What are locales for?</h2>
+          <p>Sets the system language</p>
+          <p>Most programs base their language on the configured system locale</p>
+        </section>
+        <section>
+          <h2>What did <code>locale-gen</code> do?</h2>
+          <p>Generated some locale-specific data common to all programs e.g.</p>
+          <ul>
+            <li>Letter sort order</li>
+            <li>Time, number, currency formats</li>
+            <li>Basic system messages</li>
+            <li>Etc.</li>
+          </ul>
+          <p>These are generated on demand because each generated locale can go up to ~50MB each.</p>
+        </section>
+        <section><p>Set root password</p><pre><code class="language-console">[root@archiso /]# <strong>passwd</strong>
+New password:
+Retype new password:
+passwd: password updated successfully</code></pre></section>
+        <section><p>Install bootloader</p><pre><code class="language-console">[root@archiso /]# <strong>grub-install --target=x86_64-efi \
+  --efi-directory=/boot/efi</strong>
+Installing for x86_64-efi platform.
+grub-install: error: efibootmgr: not found.</code></pre></section>
+        <section><p>Oops! Install efibootmgr</p><pre><code class="language-console">[root@archiso /]# <strong>pacman -S efibootmgr</strong>
+resolving dependencies...
+looking for conflicting packages...
+
+Packages (2) efivar-37-1  efibootmgr-16-1
+
+Total Download Size:   0.11 MiB
+Total Installed Size:  0.38 MiB
+
+:: Proceed with installation? [Y/n]
+:: Retrieving packages...
+ efivar-37-1-x86_64        97.5 KiB  31.7M/s 00:00 ... 100%
+ efibootmgr-16-1-x86_64    19.3 KiB  0.00B/s 00:00 ... 100%
+(2/2) checking keys in keyring                     ... 100%
+(2/2) checking package integrity                   ... 100%
+(2/2) loading package files                        ... 100%
+(2/2) checking for file conflicts                  ... 100%
+(2/2) checking available disk space                ... 100%
+:: Processing package changes...
+(1/2) installing efivar                            ... 100%
+(2/2) installing efibootmgr                        ... 100%
+:: Running post-transaction hooks...
+(1/1) Arming ConditionNeedsUpdate...</code></pre></section>
+        <section>
+          <p>Install Grub again</p><pre><code class="language-console">[root@archiso /]# <strong>grub-install --target=x86_64-efi \
+  --efi-directory=/boot/efi</strong>
+Installing for x86_64-efi platform.
+Installation finished. No error reported.</code></pre>
+          <p>Generate Grub configuration</p><pre><code class="language-console">[root@archiso /]# <strong>grub-mkconfig -o /boot/grub/grub.cfg</strong>
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-linux
+Found initrd image: /boot/initramfs-linux.img
+Found fallback initrd image(s) in /boot: initramfs-linux-fallback.img
+done</code></pre>
+        </section>
+        <section>
+          <h2>What's efibootmgr?</h2>
+          <p>A tool to manage the boot entries in your PC's firmware</p>
+          <p>We can view the entries:</p>
+          <pre><code class="language-console">[root@archiso /]# <strong>efibootmgr -v</strong></code></pre>
+        </section>
+        <section>
+          <section><img src="img/boot-3.svg"></section>
+          <section><img src="img/boot-2a.svg"></section>
+        </section>
+        <section>
+          <h2>What does Grub do?</h2>
+          <p>Finds and loads the Linux kernel, and passes it its initramfs and command line</p>
+          <h2><a href="https://wiki.archlinux.org/index.php/Arch_boot_process#Boot_loader" target="_blank" rel="noopener noreferrer">Alternatives?</a></h2>
+          <p>rEFInd, systemd-boot, Clover, or...</p>
+          <p>none at all! <a href="https://wiki.archlinux.org/index.php/EFISTUB" target="_blank" rel="noopener noreferrer">The kernel itself is an EFI application.</a></p>
+        </section>
+        <section>
+          <h2>Wait, what's the UEFI thing?</h2>
+          <p>Supersedes BIOS</p>
+          <p>BIOS and UEFI are both specifications for the interface between OSes (e.g. Linux) and the system firmware</p>
+        </section>
+        <section>
+          <h2>What's the firmware?</h2>
+          <p>The first thing that runs<br>when you power on your computer</p>
+          <p>Initialises hardware,<br>then finds the bootloader and runs it</p>
+        </section>
+        <section>
+          <section>
+            <h2>BIOS vs UEFI?</h2>
+            <p>UEFI is a lot newer.
+            Bootloaders are stored in the EFI system partition, multiple bootloaders are supported, etc.
+            UEFI provides many services (even filesystems); it is almost a full-fledged OS.</p>
+            <p>BIOS is a lot older, and a lot simpler.
+            It doesn't support multiple bootloaders: it "finds" the bootloader by just executing the start of the disk.</p>
+          </section>
+          <section>
+            <h2>BIOS vs UEFI?</h2>
+            <p>BIOS firmwares generally support only MBR partitioning, which is limited to 4 partitions, and a maximum partition size of 2 TiB.</p>
+            <p>Nowadays, GPT is used with UEFI. GPT's limits should last us quite a while.</p>
+          </section>
+        </section>
+        <section>
+          <p>Exit <code>chroot</code></p><pre><code class="language-console">[root@archiso /]# <strong>exit</strong></code></pre>
+          <p>Unmount partitions</p><pre><code class="language-console">root@archiso /mnt # <strong>cd ..</strong>
+root@archiso / # <strong>umount -R /mnt</strong></code></pre>
+          <p>Reboot</p><pre><code class="language-console">root@archiso / # <strong>reboot</strong></code></pre>
+        </section>
+        <section><h2>Welcome to Arch (for real)!</h2></section>
+        <section><pre><code class="language-console">Arch Linux 5.3.5-arch1-1-ARCH (ttyS0)
+
+myvm login: <strong>root</strong>
+Password:
+Last login: Mon Oct 14 09:03:07 on tty1
+[root@myvm ~]#</code></pre></section>
+        <section>
+          <section><img src="img/boot-2a.svg"></section>
+          <section><img src="img/boot-2.svg"></section>
+        </section>
+        <section>
+          <h2>We're missing something...</h2>
+          <pre><code class="language-console">Arch Linux 5.3.5-arch1-1-ARCH (ttyS0)
+
+myvm login: root
+Password:
+<strong>Last login: Mon Oct 14 09:03:07 on tty1</strong>
+[root@myvm ~]#</code></pre>
+          <p>The highlighted line is the first line from Bash.</p>
+          <p>Bash doesn't provide us a login prompt!</p>
+        </section>
+        <section>
+          <section><img src="img/boot-2.svg"></section>
+          <section><img src="img/boot-1.svg"></section>
+          <section>
+            <h2>getty</h2>
+            <p>getty: get tty</p>
+            <p>Manages terminals. Launches <code>login</code> for a login prompt when it detects a connection.</p>
+            <p>"Connection" more relevant in old serial/teletype terminal days.</p>
+          </section>
+        </section>
+        <section>
+          <p>Add a user</p><pre><code class="language-console">[root@myvm ~]# <strong>useradd -g users -G adm,wheel,uucp,sys -m vm</strong>
+[root@myvm ~]# <strong>passwd -d vm</strong>
+passwd: password expiry information changed.</code></pre>
+          <p>Switch to that user</p><pre><code class="language-console">[root@myvm ~]# <strong>logout</strong>
+
+Arch Linux 5.3.5-arch1-1-ARCH (ttyS0)
+
+myvm login: <strong>vm</strong>
+[vm@myvm ~]$</code></pre>
+        </section>
+        <section>
+          <p>Install <code>sudo</code></p><pre><code class="language-console">[vm@myvm ~]$ <strong>su -</strong>
+Password:
+[root@myvm ~]# <strong>pacman -S sudo</strong>
+resolving dependencies...
+looking for conflicting packages...
+
+Packages (1) sudo-1.8.27-1
+
+Total Download Size:   0.74 MiB
+Total Installed Size:  3.22 MiB
+
+:: Proceed with installation? [Y/n]
+:: Retrieving packages...
+ sudo-1.8.27-1-x86_64     760.7 KiB  53.1M/s 00:00 ... 100%
+(1/1) checking keys in keyring                     ... 100%
+(1/1) checking package integrity                   ... 100%
+(1/1) loading package files                        ... 100%
+(1/1) checking for file conflicts                  ... 100%
+(1/1) checking available disk space                ... 100%
+:: Processing package changes...
+(1/1) installing sudo                              ... 100%
+:: Running post-transaction hooks...
+(1/2) Creating temporary files...
+(2/2) Arming ConditionNeedsUpdate...</code></pre>
+        </section>
+        <section>
+          <p>Give us <code>sudo</code> permission</p><pre><code class="language-console">[root@myvm ~]# <strong>EDITOR=nano visudo
+<strong>vm ALL=(ALL) ALL</strong></strong></code></pre>
+          <p>Logout of root</p><pre><code class="language-console">[root@myvm ~]# <strong>logout</strong>
+[vm@myvm ~]$</strong></code></pre>
+        </section>
+        <section>
+          <p>Install a graphical environment</p><pre><code class="language-console">[vm@myvm ~]$ <strong>sudo pacman -S xfce4 lightdm lightdm-gtk-greeter \
+  virtualbox-guest-utils xorg-server xf86-video-vmware</strong></code></pre>
+          <p>Enable LightDM and reboot</p><pre><code class="language-console">[vm@myvm ~]$ <strong>sudo systemctl enable lightdm</strong>
+[vm@myvm ~]$ <strong>reboot</strong></code></pre>
+        </section>
+        <section>
+          <h2>What did we just install?</h2>
+          <p>virtualbox-guest-utils: VirtualBox integration</p>
+          <p>lightdm: Display manager</p>
+          <p>xorg-server: Display server</p>
+          <p>xf86-video-vmware: Display driver (userspace part)</p>
+          <p>xfce4: Desktop environment</p>
+        </section>
+        <section>
+          <h2>What does <a href="https://www.archlinux.org/groups/x86_64/xfce4/" target="_blank" rel="noopener noreferrer">XFCE4</a> provide?</h2>
+          <p>xfwm: Window manager</p>
+          <p>thunar: File manager</p>
+          <p>xfce4-terminal: Terminal emulator</p>
+          <p>xfce4-settings: Settings app</p>
+          <p>xfce4-panel: The panels you see at the top and bottom</p>
+          <p>Etc.</p>
+        </section>
+        <section>
+          <h2>Display server?</h2>
+          <img src="img/x-architecture.png" class="white-bg">
+        </section>
+        <section>
+          <h2>Window manager?<br>Compositor?<br>Display manager?</h2>
+          <p>The window manager: Manages the layout of windows on the screen</p>
+          <p>The compositor: <a href="https://unix.stackexchange.com/a/359296" target="_blank" rel="noopener noreferrer">See this Unix.SX answer</a></p>
+          <p>Display manager: Provides a nice login screen for you and launches your actual desktop environment</p>
+        </section>
+        <section>
+          <h2><a href="https://wiki.archlinux.org/index.php/Display_manager#List_of_display_managers" target="_blank" rel="noopener noreferrer">Alternative display managers?</a></h2>
+          <p>LXDM, GNOME Display Manager, X Display Manager, etc. All perform more or less the same thing.</p>
+        </section>
+        <section>
+          <section>
+            <h2>Can I not use a DE?</h2>
+            <p>Yes! You can always pick and choose your own display manager, window manager, compositor, and core programs like file managers, etc.</p>
+            <p>Try a tiling window manager like <a href="https://wiki.archlinux.org/index.php/awesome" target="_blank" rel="noopener noreferrer">AwesomeWM</a> or <a href="https://wiki.archlinux.org/index.php/i3" target="_blank" rel="noopener noreferrer">i3</a>.</p>
+            <p>(XFCE also lets you <a href="https://wiki.archlinux.org/index.php/Xfce#Use_a_different_window_manager" target="_blank" rel="noopener noreferrer">swap out XFWM</a> for some other WM.)</p>
+          </section>
+          <section>
+            <h2>Drawbacks of not using DE?</h2>
+            <p>Some programs expect a "typical" DE, and can malfunction in weird ways</p>
+            <p>No settings app</p>
+            <p>No integration or uniform feel to system programs</p>
+            <p>Handle things yourself: <a href="https://wiki.archlinux.org/index.php/GTK#Basic_theme_configuration" target="_blank" rel="noopener noreferrer">setting GTK theme</a>,
+            <a href="https://wiki.archlinux.org/index.php/XDG_Autostart" target="_blank" rel="noopener noreferrer">XDG autostart</a>, etc.</p>
+          </section>
+          <section>
+            <h2><a href="https://wiki.archlinux.org/index.php/Desktop_environment#Officially_supported" target="_blank" rel="noopener noreferrer">Alternative <span style="text-transform: none">DEs</span></a>?</h2>
+            <p>GNOME, KDE, LXDE, LXQt, Enlightenment, ...</p>
+            <p>All do just about the same things, but with different design directions and tastes</p>
+            <p>Some are more lightweight: Xfce, LXQt, Enlightenment</p>
+            <p>Some use GTK: GNOME, Xfce, Cinnamon, etc; some use Qt: KDE, LXQt, etc</p>
+          </section>
+        </section>
+        <section>
+          <section><img src="img/boot-1.svg"></section>
+          <section><img src="img/boot-0.svg"></section>
+        </section>
+        <section>
+          <h2>Welcome to XFCE4!</h2>
+          <p>Fonts look a bit ugly though...</p>
+        </section>
+        <section>
+          <p>Install NetworkManager</p><pre><code class="language-console">[vm@myvm ~]$ <strong>sudo pacman -S networkmanager \
+  nm-connection-editor</strong></code></pre>
+          <p>Enable it</p><pre><code class="language-console">[vm@myvm ~]$ <strong>sudo systemctl enable --now NetworkManager</strong></code></pre>
+        </section>
+        <section>
+          <h2>NetworkManager?</h2>
+          <p>A daemon to help you manage your networks settings, plus a nice interface for it.</p>
+          <p><a href="https://wiki.archlinux.org/index.php/Network_configuration#Network_managers" target="_blank" rel="noopener noreferrer">Alternatives</a>: systemd-networkd, netctl, etc.</p>
+        </section>
+        <section>
+          <p>Enable online repositories</p><pre><code class="language-console">[vm@myvm ~]$ <strong>EDITOR=nano sudoedit /etc/pacman.conf</strong>
+[core]
+<strong class="red"><del>#</del></strong>Include = /etc/pacman.d/mirrorlist
+
+[extra]
+<strong class="red"><del>#</del></strong>Include = /etc/pacman.d/mirrorlist
+
+[community]
+<strong class="red"><del>#</del></strong>Include = /etc/pacman.d/mirrorlist
+
+<strong class="red"><del>[arch_offline]
+SigLevel = Optional TrustAll
+Server = file:///srv/http/arch_offline</del></strong></code></pre>
+        </section>
+        <section>
+          <p>Pick our mirror</p><pre><code class="language-console">[vm@myvm ~]$ <strong>sudo -i</strong>
+[root@myvm ~]# <strong>echo \
+  'Server = https://sgp.mirror.pkgbuild.com/$repo/os/$arch' \
+  &gt; /etc/pacman.d/mirrorlist</strong></code></pre>
+          <p>Sync repositories</p><pre><code class="language-console">[root@myvm ~]# <strong>pacman -Sy</strong></code></pre>
+          <p>Install fonts</p><pre><code class="language-console">[root@myvm ~]# <strong>pacman -S ttf-bitstream-vera</strong></code></pre>
+        </section>
+        <section>
+          <p>Install NetworkManager applet</p><pre><code class="language-console">[root@myvm ~]# <strong>pacman -S network-manager-applet</strong></code></pre>
+        </section>
+        <section>
+          <section>
+            <h2><span style="text-transform: none">TTYs</span></h2>
+            <p>A TTY (from teletype) is a relic of the old times when there were separate, physical terminals connected to one computer</p>
+            <p>Nowadays, you get a few virtual TTYs emulated on our graphical displays</p>
+            <p><a href="http://www.linusakesson.net/programming/tty/index.php" target="_blank" rel="noopener noreferrer">For more</a></p>
+          </section>
+          <section>
+            <h2>Switching <span style="text-transform: none">TTYs</span></h2>
+            <p>Ctrl+Alt+F1/2/3/4/5/6/7 switches TTYs on modern Linux</p>
+            <p>In VirtualBox, use Right Ctrl+F1/2/3/...</p>
+            <p>Use case: in case your graphical environment crashes/hangs</p>
+          </section>
+        </section>
+        <section>
+          <h2>How do I install on my PC?</h2>
+          <p>Steps are the same, minus the offline installation part.</p>
+          <p>The tricky part is if dual-booting.</p>
+          <p>See <a href="https://wiki.archlinux.org/index.php/Dual_boot_with_Windows#UEFI_systems" target="_blank" rel="noopener noreferrer">here</a>
+          and <a href="https://wiki.archlinux.org/index.php/GRUB#Detecting_other_operating_systems" target="_blank" rel="noopener noreferrer">here</a>.</p>
+          <p>Another tricky part is <a href="https://wiki.archlinux.org/index.php/Dual_boot_with_Windows#UEFI_Secure_Boot" target="_blank" rel="noopener noreferrer">UEFI Secure Boot</a>. Disabling it may cause issues in Windows, especially if you have BitLocker <a href="https://docs.microsoft.com/en-us/windows/security/information-protection/tpm/how-windows-uses-the-tpm#bitlocker-drive-encryption" target="_blank" rel="noopener noreferrer">with TPM</a> enabled.</p>
+        </section>
+        <section>
+          <h2>Thank you!</h2>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/languages/shell.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0/js/reveal.min.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: 'reveal-highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        ],
+        slideNumber: true,
+        fragmentInURL: true,
+        transitionSpeed: 'fast',
+        // center: false,
+        hash: true,
+        navigationMode: 'linear',
+        transition: 'fade',
+        highlight: {
+          escapeHTML: false
+        }
+      });
+    </script>
+  </body>
+</html>
